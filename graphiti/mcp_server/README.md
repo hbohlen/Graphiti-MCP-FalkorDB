@@ -401,6 +401,38 @@ The Graphiti MCP Server container uses the SSE MCP transport. Claude Desktop doe
 - OpenAI API key (for LLM operations and embeddings)
 - MCP-compatible client
 
+## Troubleshooting
+
+### Common Docker Compose Issues
+
+**Port Conflicts:**
+- Ports 6379, 7474, 7687, 8000, 8001, 3000 are used by the services
+- If you get "port already in use" errors, stop conflicting services or change ports in docker-compose.yml
+
+**Memory Issues:**
+- Neo4j is configured with 512MB-1GB heap memory by default
+- For low-memory systems, reduce memory settings in docker-compose.yml:
+  ```yaml
+  environment:
+    - NEO4J_server_memory_heap_max__size=256m
+    - NEO4J_server_memory_pagecache_size=256m
+  ```
+
+**Service Health Check Failures:**
+- Services wait up to 35 seconds for database readiness 
+- If databases fail to start, check logs: `docker compose logs <service-name>`
+- Increase health check timeout if needed in docker-compose.yml
+
+**OpenRouter Configuration:**
+- Ensure your OpenRouter API key has access to the models you specify
+- Some models may have rate limits or availability restrictions
+- Check [OpenRouter documentation](https://openrouter.ai/docs) for model-specific requirements
+
+**Environment Variables:**
+- OPENAI_API_KEY is required (either OpenAI or OpenRouter key)
+- Copy `.env.example` to `.env` and configure your settings
+- Verify all required variables are set before running
+
 ## Telemetry
 
 The Graphiti MCP server uses the Graphiti core library, which includes anonymous telemetry collection. When you initialize the Graphiti MCP server, anonymous usage statistics are collected to help improve the framework.

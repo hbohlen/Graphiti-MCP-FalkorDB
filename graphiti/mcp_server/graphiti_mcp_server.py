@@ -198,6 +198,7 @@ class GraphitiLLMConfig(BaseModel):
     model: str = DEFAULT_LLM_MODEL
     small_model: str = SMALL_LLM_MODEL
     temperature: float = 0.0
+    base_url: str | None = None
     azure_openai_endpoint: str | None = None
     azure_openai_deployment_name: str | None = None
     azure_openai_api_version: str | None = None
@@ -238,6 +239,7 @@ class GraphitiLLMConfig(BaseModel):
                 model=model,
                 small_model=small_model,
                 temperature=float(os.environ.get('LLM_TEMPERATURE', '0.0')),
+                base_url=os.environ.get('OPENAI_BASE_URL'),
             )
         else:
             # Setup for Azure OpenAI API
@@ -339,7 +341,10 @@ class GraphitiLLMConfig(BaseModel):
             raise ValueError('OPENAI_API_KEY must be set when using OpenAI API')
 
         llm_client_config = LLMConfig(
-            api_key=self.api_key, model=self.model, small_model=self.small_model
+            api_key=self.api_key, 
+            model=self.model, 
+            small_model=self.small_model,
+            base_url=self.base_url
         )
 
         # Set temperature
@@ -356,6 +361,7 @@ class GraphitiEmbedderConfig(BaseModel):
 
     model: str = DEFAULT_EMBEDDER_MODEL
     api_key: str | None = None
+    base_url: str | None = None
     azure_openai_endpoint: str | None = None
     azure_openai_deployment_name: str | None = None
     azure_openai_api_version: str | None = None
@@ -410,6 +416,7 @@ class GraphitiEmbedderConfig(BaseModel):
             return cls(
                 model=model,
                 api_key=os.environ.get('OPENAI_API_KEY'),
+                base_url=os.environ.get('OPENAI_BASE_URL'),
             )
 
     def create_client(self) -> EmbedderClient | None:
@@ -446,7 +453,11 @@ class GraphitiEmbedderConfig(BaseModel):
             if not self.api_key:
                 return None
 
-            embedder_config = OpenAIEmbedderConfig(api_key=self.api_key, embedding_model=self.model)
+            embedder_config = OpenAIEmbedderConfig(
+                api_key=self.api_key, 
+                embedding_model=self.model,
+                base_url=self.base_url
+            )
 
             return OpenAIEmbedder(config=embedder_config)
 

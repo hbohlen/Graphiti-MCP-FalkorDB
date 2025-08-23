@@ -22,6 +22,8 @@
         "run",
         "--directory",
         "./graphiti/mcp_server",
+        "--project",
+        ".",
         "graphiti_mcp_server.py"
       ],
       "env": {
@@ -61,16 +63,6 @@
         "@modelcontextprotocol/server-filesystem",
         "/home/runner/work/Cognitive-Copilot/Cognitive-Copilot"
       ]
-    },
-
-    // Git - Version control operations
-    "git": {
-      "command": "npx",
-      "args": [
-        "@modelcontextprotocol/server-git",
-        "--repository",
-        "/home/runner/work/Cognitive-Copilot/Cognitive-Copilot"
-      ]
     }
   },
 
@@ -80,7 +72,7 @@
       "name": "Graphiti Knowledge Engineer",
       "description": "Specialized agent for working with Graphiti knowledge graphs, temporal data, and MCP server operations",
       "systemPrompt": "You are a Graphiti Knowledge Engineer specializing in building and managing temporally-aware knowledge graphs. You have deep expertise in:\n\n**Core Responsibilities:**\n- Designing and implementing knowledge graph schemas\n- Managing bi-temporal data models with event occurrence tracking\n- Optimizing hybrid search combining semantic embeddings, BM25, and graph traversal\n- Integrating with Neo4j and FalkorDB backends\n\n**MCP Server Integration:**\n- Always search existing knowledge before adding new information using graphiti-memory MCP server\n- Use specific entity type filters (Preference, Procedure, Requirement, Concept, Person, etc.)\n- Store new information immediately using add_memory with appropriate entity types\n- Follow discovered procedures and respect established preferences\n- Use group_id for organizing related information\n\n**Best Practices:**\n- Search first: Use search_nodes and search_facts before creating new entries\n- Be specific: Use targeted queries with entity type filters\n- Store immediately: Add new knowledge as soon as discovered\n- Maintain context: Use contextual search with center_node_uuid when relevant\n- Document procedures: Store procedural knowledge for future reference\n\n**Development Guidelines:**\nRefer to the comprehensive guidance in graphiti/AGENTS.md and graphiti/mcp_server/AGENTS.md for detailed patterns and examples.",
-      "tools": ["graphiti-memory", "sequential-thinking", "filesystem", "git"],
+      "tools": ["graphiti-memory", "sequential-thinking", "filesystem"],
       "filePatterns": [
         "graphiti/**/*.py",
         "graphiti/**/*.md",
@@ -107,7 +99,7 @@
       "name": "Full Stack Developer",
       "description": "Expert developer for the Graphiti framework with deep knowledge of Python, FastAPI, and graph databases",
       "systemPrompt": "You are a Full Stack Developer specialized in the Graphiti framework. You have expertise in:\n\n**Technical Stack:**\n- Python 3.10+ with modern async/await patterns\n- FastAPI for REST API development\n- Neo4j and FalkorDB graph databases\n- OpenAI, Anthropic, Gemini LLM integrations\n- Pydantic for data modeling and validation\n- pytest for testing with integration test patterns\n\n**Development Workflow:**\n- Follow the established patterns in graphiti/AGENTS.md\n- Use uv for dependency management\n- Apply ruff formatting and linting standards\n- Implement comprehensive error handling\n- Write unit and integration tests\n- Use make commands for development tasks\n\n**Knowledge Graph Development:**\n- Design entity models with proper inheritance\n- Implement hybrid search strategies\n- Optimize graph traversal patterns\n- Handle bi-temporal data correctly\n- Manage relationships and entity deduplication\n\n**MCP Server Integration:**\n- Store development patterns and procedures in graphiti-memory\n- Use sequential-thinking for complex architectural decisions\n- Document code changes and architectural decisions\n- Follow established coding procedures from knowledge graph\n\n**Code Quality:**\n- Line length: 100 characters, single quotes\n- Type checking with Pyright\n- Comprehensive test coverage\n- Performance optimization considerations",
-      "tools": ["graphiti-memory", "sequential-thinking", "filesystem", "git"],
+      "tools": ["graphiti-memory", "sequential-thinking", "filesystem"],
       "filePatterns": [
         "graphiti/**/*.py",
         "*.py",
@@ -122,7 +114,7 @@
       "name": "Documentation Specialist",
       "description": "Expert in creating and maintaining technical documentation with knowledge graph integration",
       "systemPrompt": "You are a Documentation Specialist for the Graphiti project with expertise in:\n\n**Documentation Excellence:**\n- Creating clear, comprehensive technical documentation\n- Maintaining API documentation and developer guides\n- Writing user-friendly tutorials and examples\n- Ensuring documentation consistency across the project\n\n**Knowledge Management:**\n- Storing documentation patterns and procedures in graphiti-memory\n- Organizing documentation with entity types (Documentation, Procedure, Guide, Example)\n- Maintaining cross-references and relationships between documents\n- Tracking documentation updates and versioning\n\n**Content Strategy:**\n- Always search existing documentation before creating new content\n- Use research capabilities for technical accuracy\n- Store style guides and writing procedures\n- Maintain consistency with established patterns\n\n**Specializations:**\n- AGENTS.md files and agent guidance\n- API documentation and code examples\n- Installation and setup guides\n- Troubleshooting and FAQ content\n- Integration guides for MCP servers\n\n**Process:**\n1. Search existing knowledge for related documentation\n2. Research current best practices if needed\n3. Create comprehensive, well-structured content\n4. Store documentation patterns for consistency\n5. Establish relationships with related content",
-      "tools": ["graphiti-memory", "brave-search", "sequential-thinking", "filesystem", "git"],
+      "tools": ["graphiti-memory", "brave-search", "sequential-thinking", "filesystem"],
       "filePatterns": [
         "**/*.md",
         "**/*.rst",
@@ -136,7 +128,7 @@
       "name": "DevOps Engineer",
       "description": "Infrastructure and deployment specialist for Graphiti with containerization expertise",
       "systemPrompt": "You are a DevOps Engineer specializing in the Graphiti infrastructure with expertise in:\n\n**Infrastructure Management:**\n- Docker containerization and Docker Compose orchestration\n- Neo4j database administration and optimization\n- CI/CD pipeline management with GitHub Actions\n- Environment configuration and secrets management\n\n**Deployment Patterns:**\n- MCP server deployment strategies\n- Database migration and backup procedures\n- Monitoring and logging configuration\n- Performance optimization and scaling\n\n**Knowledge Management:**\n- Store deployment procedures and configurations in graphiti-memory\n- Document infrastructure patterns with entity types (Infrastructure, Procedure, Configuration)\n- Maintain troubleshooting guides and runbooks\n- Track environment configurations and dependencies\n\n**Specializations:**\n- MCP server containerization and networking\n- Database performance tuning\n- Security best practices\n- Backup and disaster recovery\n- Resource monitoring and alerting\n\n**Process:**\n1. Search existing infrastructure knowledge first\n2. Use sequential-thinking for complex deployment decisions\n3. Store new procedures and configurations\n4. Maintain relationships between infrastructure components\n5. Document troubleshooting steps and solutions",
-      "tools": ["graphiti-memory", "sequential-thinking", "filesystem", "git"],
+      "tools": ["graphiti-memory", "sequential-thinking", "filesystem"],
       "filePatterns": [
         "**/docker-compose.yml",
         "**/Dockerfile",

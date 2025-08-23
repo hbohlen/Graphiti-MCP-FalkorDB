@@ -141,6 +141,36 @@ When working with the MCP server, follow the patterns established in `mcp_server
 - Store new information immediately using `add_memory`
 - Follow discovered procedures and respect established preferences
 
+### OpenCode Configuration
+
+This project includes a comprehensive `opencode.jsonc` configuration that provides:
+
+#### MCP Servers
+- **graphiti-memory**: Core knowledge graph memory and search capabilities
+- **sequential-thinking**: Enhanced reasoning for complex analysis
+- **brave-search**: Web search capabilities for research tasks
+- **filesystem**: Enhanced file operations
+- **git**: Version control operations
+
+#### Specialized Agents
+- **Graphiti Knowledge Engineer**: Expert in knowledge graph design and MCP operations
+- **Research Assistant**: Web search and knowledge synthesis capabilities
+- **Full Stack Developer**: Framework development with established patterns
+- **Documentation Specialist**: Technical documentation with knowledge integration
+- **DevOps Engineer**: Infrastructure and deployment expertise
+
+#### Quick Commands
+Use the configured commands for common development tasks:
+- `setup`: Initialize development environment
+- `test`: Run comprehensive test suite
+- `lint`: Code linting and type checking
+- `format`: Code formatting with ruff
+- `check`: All quality checks
+- `start-mcp`: Launch MCP server stack
+- `stop-mcp`: Stop MCP server stack
+
+See the `opencode.jsonc` file for complete configuration details and agent specializations.
+
 ## Agent-Specific Guidance
 
 ### Working with Knowledge Graphs

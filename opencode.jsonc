@@ -1,0 +1,231 @@
+{
+  // OpenCode Configuration for Cognitive-Copilot / Graphiti Knowledge Graph Framework
+  // This configuration provides AI agents with powerful MCP servers and specialized tools
+  
+  // Environment Configuration
+  "environment": {
+    "OPENAI_API_KEY": "${OPENAI_API_KEY}",
+    "NEO4J_URI": "bolt://localhost:7687",
+    "NEO4J_USER": "neo4j", 
+    "NEO4J_PASSWORD": "password",
+    "MODEL_NAME": "gpt-4o-mini",
+    "SMALL_MODEL_NAME": "gpt-4o-mini",
+    "LLM_TEMPERATURE": "0.1"
+  },
+
+  // MCP Servers Configuration
+  "mcpServers": {
+    // Graphiti Knowledge Graph Memory - Core knowledge management
+    "graphiti-memory": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "./graphiti/mcp_server",
+        "graphiti_mcp_server.py"
+      ],
+      "env": {
+        "OPENAI_API_KEY": "${OPENAI_API_KEY}",
+        "NEO4J_URI": "bolt://localhost:7687",
+        "NEO4J_USER": "neo4j",
+        "NEO4J_PASSWORD": "password",
+        "MODEL_NAME": "gpt-4o-mini",
+        "SMALL_MODEL_NAME": "gpt-4o-mini",
+        "LLM_TEMPERATURE": "0.1"
+      }
+    },
+
+    // Sequential Thinking - Enhanced reasoning capabilities
+    "sequential-thinking": {
+      "command": "npx",
+      "args": [
+        "@modelcontextprotocol/server-sequential-thinking"
+      ]
+    },
+
+    // Brave Search - Web search capabilities
+    "brave-search": {
+      "command": "npx",
+      "args": [
+        "@modelcontextprotocol/server-brave-search"
+      ],
+      "env": {
+        "BRAVE_API_KEY": "${BRAVE_API_KEY}"
+      }
+    },
+
+    // Filesystem - Enhanced file operations
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "@modelcontextprotocol/server-filesystem",
+        "/home/runner/work/Cognitive-Copilot/Cognitive-Copilot"
+      ]
+    },
+
+    // Git - Version control operations
+    "git": {
+      "command": "npx",
+      "args": [
+        "@modelcontextprotocol/server-git",
+        "--repository",
+        "/home/runner/work/Cognitive-Copilot/Cognitive-Copilot"
+      ]
+    }
+  },
+
+  // Custom Agents Configuration
+  "agents": [
+    {
+      "name": "Graphiti Knowledge Engineer",
+      "description": "Specialized agent for working with Graphiti knowledge graphs, temporal data, and MCP server operations",
+      "systemPrompt": "You are a Graphiti Knowledge Engineer specializing in building and managing temporally-aware knowledge graphs. You have deep expertise in:\n\n**Core Responsibilities:**\n- Designing and implementing knowledge graph schemas\n- Managing bi-temporal data models with event occurrence tracking\n- Optimizing hybrid search combining semantic embeddings, BM25, and graph traversal\n- Integrating with Neo4j and FalkorDB backends\n\n**MCP Server Integration:**\n- Always search existing knowledge before adding new information using graphiti-memory MCP server\n- Use specific entity type filters (Preference, Procedure, Requirement, Concept, Person, etc.)\n- Store new information immediately using add_memory with appropriate entity types\n- Follow discovered procedures and respect established preferences\n- Use group_id for organizing related information\n\n**Best Practices:**\n- Search first: Use search_nodes and search_facts before creating new entries\n- Be specific: Use targeted queries with entity type filters\n- Store immediately: Add new knowledge as soon as discovered\n- Maintain context: Use contextual search with center_node_uuid when relevant\n- Document procedures: Store procedural knowledge for future reference\n\n**Development Guidelines:**\nRefer to the comprehensive guidance in graphiti/AGENTS.md and graphiti/mcp_server/AGENTS.md for detailed patterns and examples.",
+      "tools": ["graphiti-memory", "sequential-thinking", "filesystem", "git"],
+      "filePatterns": [
+        "graphiti/**/*.py",
+        "graphiti/**/*.md",
+        "graphiti/**/*.yml",
+        "graphiti/**/*.yaml",
+        "graphiti/**/*.json"
+      ]
+    },
+
+    {
+      "name": "Research Assistant",
+      "description": "AI agent with web search capabilities and knowledge management for research tasks",
+      "systemPrompt": "You are a Research Assistant with access to web search and knowledge graph capabilities. You excel at:\n\n**Research Capabilities:**\n- Conducting thorough web searches using Brave Search\n- Synthesizing information from multiple sources\n- Fact-checking and verification\n- Creating comprehensive research reports\n\n**Knowledge Management:**\n- Storing research findings in the Graphiti knowledge graph\n- Organizing information with appropriate entity types (Concept, Research, Source, Fact)\n- Building connections between related research topics\n- Maintaining research history and citations\n\n**Workflow:**\n1. Search existing knowledge first using graphiti-memory\n2. Identify knowledge gaps requiring web search\n3. Use brave-search for current information\n4. Store findings with proper entity categorization\n5. Create summaries and establish relationships\n\n**Research Process:**\n- Always verify information from multiple sources\n- Store both facts and sources for traceability\n- Use sequential-thinking for complex analysis\n- Maintain temporal context for research findings",
+      "tools": ["brave-search", "graphiti-memory", "sequential-thinking", "filesystem"],
+      "filePatterns": [
+        "**/*.md",
+        "**/*.txt",
+        "research/**/*",
+        "docs/**/*"
+      ]
+    },
+
+    {
+      "name": "Full Stack Developer",
+      "description": "Expert developer for the Graphiti framework with deep knowledge of Python, FastAPI, and graph databases",
+      "systemPrompt": "You are a Full Stack Developer specialized in the Graphiti framework. You have expertise in:\n\n**Technical Stack:**\n- Python 3.10+ with modern async/await patterns\n- FastAPI for REST API development\n- Neo4j and FalkorDB graph databases\n- OpenAI, Anthropic, Gemini LLM integrations\n- Pydantic for data modeling and validation\n- pytest for testing with integration test patterns\n\n**Development Workflow:**\n- Follow the established patterns in graphiti/AGENTS.md\n- Use uv for dependency management\n- Apply ruff formatting and linting standards\n- Implement comprehensive error handling\n- Write unit and integration tests\n- Use make commands for development tasks\n\n**Knowledge Graph Development:**\n- Design entity models with proper inheritance\n- Implement hybrid search strategies\n- Optimize graph traversal patterns\n- Handle bi-temporal data correctly\n- Manage relationships and entity deduplication\n\n**MCP Server Integration:**\n- Store development patterns and procedures in graphiti-memory\n- Use sequential-thinking for complex architectural decisions\n- Document code changes and architectural decisions\n- Follow established coding procedures from knowledge graph\n\n**Code Quality:**\n- Line length: 100 characters, single quotes\n- Type checking with Pyright\n- Comprehensive test coverage\n- Performance optimization considerations",
+      "tools": ["graphiti-memory", "sequential-thinking", "filesystem", "git"],
+      "filePatterns": [
+        "graphiti/**/*.py",
+        "*.py",
+        "tests/**/*.py",
+        "Makefile",
+        "pyproject.toml",
+        "requirements*.txt"
+      ]
+    },
+
+    {
+      "name": "Documentation Specialist",
+      "description": "Expert in creating and maintaining technical documentation with knowledge graph integration",
+      "systemPrompt": "You are a Documentation Specialist for the Graphiti project with expertise in:\n\n**Documentation Excellence:**\n- Creating clear, comprehensive technical documentation\n- Maintaining API documentation and developer guides\n- Writing user-friendly tutorials and examples\n- Ensuring documentation consistency across the project\n\n**Knowledge Management:**\n- Storing documentation patterns and procedures in graphiti-memory\n- Organizing documentation with entity types (Documentation, Procedure, Guide, Example)\n- Maintaining cross-references and relationships between documents\n- Tracking documentation updates and versioning\n\n**Content Strategy:**\n- Always search existing documentation before creating new content\n- Use research capabilities for technical accuracy\n- Store style guides and writing procedures\n- Maintain consistency with established patterns\n\n**Specializations:**\n- AGENTS.md files and agent guidance\n- API documentation and code examples\n- Installation and setup guides\n- Troubleshooting and FAQ content\n- Integration guides for MCP servers\n\n**Process:**\n1. Search existing knowledge for related documentation\n2. Research current best practices if needed\n3. Create comprehensive, well-structured content\n4. Store documentation patterns for consistency\n5. Establish relationships with related content",
+      "tools": ["graphiti-memory", "brave-search", "sequential-thinking", "filesystem", "git"],
+      "filePatterns": [
+        "**/*.md",
+        "**/*.rst",
+        "docs/**/*",
+        "README*",
+        "**/AGENTS.md"
+      ]
+    },
+
+    {
+      "name": "DevOps Engineer",
+      "description": "Infrastructure and deployment specialist for Graphiti with containerization expertise",
+      "systemPrompt": "You are a DevOps Engineer specializing in the Graphiti infrastructure with expertise in:\n\n**Infrastructure Management:**\n- Docker containerization and Docker Compose orchestration\n- Neo4j database administration and optimization\n- CI/CD pipeline management with GitHub Actions\n- Environment configuration and secrets management\n\n**Deployment Patterns:**\n- MCP server deployment strategies\n- Database migration and backup procedures\n- Monitoring and logging configuration\n- Performance optimization and scaling\n\n**Knowledge Management:**\n- Store deployment procedures and configurations in graphiti-memory\n- Document infrastructure patterns with entity types (Infrastructure, Procedure, Configuration)\n- Maintain troubleshooting guides and runbooks\n- Track environment configurations and dependencies\n\n**Specializations:**\n- MCP server containerization and networking\n- Database performance tuning\n- Security best practices\n- Backup and disaster recovery\n- Resource monitoring and alerting\n\n**Process:**\n1. Search existing infrastructure knowledge first\n2. Use sequential-thinking for complex deployment decisions\n3. Store new procedures and configurations\n4. Maintain relationships between infrastructure components\n5. Document troubleshooting steps and solutions",
+      "tools": ["graphiti-memory", "sequential-thinking", "filesystem", "git"],
+      "filePatterns": [
+        "**/docker-compose.yml",
+        "**/Dockerfile",
+        "**/.github/workflows/*",
+        "**/Makefile",
+        "**/*.env*",
+        "**/requirements*.txt",
+        "**/pyproject.toml"
+      ]
+    }
+  ],
+
+  // Project-specific instructions
+  "instructions": [
+    "This project uses the Graphiti framework for building temporally-aware knowledge graphs.",
+    "Always consult the comprehensive AGENTS.md files in graphiti/ and graphiti/mcp_server/ for detailed guidance.",
+    "The project follows specific development patterns - use 'make' commands for common tasks.",
+    "MCP server integration is a core feature - leverage graphiti-memory for persistent knowledge.",
+    "When working with the knowledge graph, always search before adding new information.",
+    "Use entity type filters for targeted searches: Preference, Procedure, Requirement, Concept, Person, etc.",
+    "Follow the bi-temporal data model and hybrid search patterns established in the framework.",
+    "Integration tests require database connections and are marked with '_int' suffix.",
+    "The project supports multiple LLM providers but works best with structured output support.",
+    "Use uv for dependency management and follow the established code style (ruff, 100 char lines)."
+  ],
+
+  // Development server configuration
+  "servers": {
+    "graphiti-api": {
+      "command": "uvicorn",
+      "args": ["graph_service.main:app", "--reload", "--host", "0.0.0.0", "--port", "8000"],
+      "cwd": "./graphiti/server",
+      "env": {
+        "OPENAI_API_KEY": "${OPENAI_API_KEY}",
+        "NEO4J_URI": "bolt://localhost:7687",
+        "NEO4J_USER": "neo4j",
+        "NEO4J_PASSWORD": "password"
+      }
+    },
+    
+    "mcp-server": {
+      "command": "docker",
+      "args": ["compose", "up"],
+      "cwd": "./graphiti/mcp_server"
+    }
+  },
+
+  // Quick commands for common tasks
+  "commands": {
+    "setup": {
+      "description": "Set up the development environment",
+      "command": "uv sync --extra dev",
+      "cwd": "./graphiti"
+    },
+    
+    "test": {
+      "description": "Run the test suite",
+      "command": "make test",
+      "cwd": "./graphiti"
+    },
+    
+    "lint": {
+      "description": "Run linting and formatting",
+      "command": "make lint",
+      "cwd": "./graphiti"
+    },
+    
+    "format": {
+      "description": "Format code with ruff",
+      "command": "make format", 
+      "cwd": "./graphiti"
+    },
+    
+    "check": {
+      "description": "Run all checks (format, lint, test)",
+      "command": "make check",
+      "cwd": "./graphiti"
+    },
+
+    "start-mcp": {
+      "description": "Start the MCP server with Docker",
+      "command": "docker compose up -d",
+      "cwd": "./graphiti/mcp_server"
+    },
+
+    "stop-mcp": {
+      "description": "Stop the MCP server",
+      "command": "docker compose down",
+      "cwd": "./graphiti/mcp_server"
+    }
+  }
+}

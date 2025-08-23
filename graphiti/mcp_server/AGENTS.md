@@ -442,3 +442,33 @@ async def test_knowledge_workflow(mock_mcp_client):
 3. **Immediate Storage**: Store new information as soon as it's discovered
 4. **Context Awareness**: Use contextual search and maintain conversation context
 5. **Error Handling**: Implement robust error handling and recovery mechanisms
+
+## OpenCode Integration
+
+The project includes a comprehensive `opencode.jsonc` configuration that integrates the Graphiti MCP server with other useful MCP servers:
+
+### MCP Server Stack
+- **graphiti-memory**: This MCP server providing knowledge graph capabilities
+- **sequential-thinking**: Enhanced reasoning for complex analysis
+- **brave-search**: Web search for research and fact-checking
+- **filesystem**: Enhanced file operations
+- **git**: Version control integration
+
+### Agent Specializations
+The configuration includes specialized agents that leverage these MCP servers:
+
+- **Graphiti Knowledge Engineer**: Focuses on knowledge graph operations using graphiti-memory
+- **Research Assistant**: Combines brave-search with graphiti-memory for research workflows
+- **Full Stack Developer**: Uses all tools for comprehensive development tasks
+- **Documentation Specialist**: Leverages search and knowledge storage for documentation
+- **DevOps Engineer**: Infrastructure management with procedure storage
+
+### Integration Patterns
+Each agent follows the core MCP patterns established in this documentation:
+- Search existing knowledge first using graphiti-memory
+- Use appropriate entity type filters for targeted queries
+- Store new procedures and knowledge immediately
+- Maintain context across operations
+- Follow established procedures from the knowledge graph
+
+See the root `opencode.jsonc` file for complete configuration and usage instructions.

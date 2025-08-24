@@ -180,7 +180,37 @@ class ResourceMonitor:
         while True:
             connection_count = await get_active_connections()
             self.telemetry.record_metric("db_connections_active", connection_count)
+            
+            # Database-specific monitoring
+            db_type = get_database_type()  # "neo4j" or "falkordb"
+            
+            if db_type == "neo4j":
+                await self.monitor_neo4j_metrics()
+            elif db_type == "falkordb":
+                await self.monitor_falkordb_metrics()
+                
             await asyncio.sleep(60)  # Check every minute
+    
+    async def monitor_neo4j_metrics(self):
+        # Neo4j-specific metrics
+        pool_status = await get_neo4j_pool_status()
+        self.telemetry.record_metric("neo4j_pool_active", pool_status.active)
+        self.telemetry.record_metric("neo4j_pool_idle", pool_status.idle)
+        
+        # Query performance
+        query_stats = await get_neo4j_query_stats()
+        self.telemetry.record_metric("neo4j_query_duration_avg", query_stats.avg_duration)
+        
+    async def monitor_falkordb_metrics(self):
+        # FalkorDB-specific metrics
+        redis_info = await get_falkordb_info()
+        self.telemetry.record_metric("falkordb_memory_used", redis_info.used_memory)
+        self.telemetry.record_metric("falkordb_commands_processed", redis_info.total_commands_processed)
+        
+        # Graph-specific metrics
+        graph_stats = await get_falkordb_graph_stats()
+        self.telemetry.record_metric("falkordb_nodes_count", graph_stats.node_count)
+        self.telemetry.record_metric("falkordb_edges_count", graph_stats.edge_count)
     
     def monitor_api_usage(self):
         # Track API calls and rate limits

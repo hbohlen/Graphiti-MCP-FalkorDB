@@ -209,11 +209,28 @@ if not integrity_results.is_valid:
 
 ### Performance Optimization
 
+#### General Performance Guidelines
 1. **Index Optimization**: Regularly optimize database indices
 2. **Query Optimization**: Optimize frequently used queries
 3. **Storage Optimization**: Optimize data storage layouts
 4. **Memory Management**: Optimize memory usage patterns
 5. **Concurrent Operations**: Optimize concurrent access patterns
+
+#### Database-Specific Performance
+
+**Neo4j Performance Optimization:**
+- **Index Management**: Use BTREE and full-text indices appropriately
+- **Query Tuning**: Optimize Cypher queries for large datasets
+- **Memory Configuration**: Tune heap and page cache settings
+- **Enterprise Features**: Leverage parallel runtime and clustering
+- **APOC Procedures**: Use APOC for bulk operations and performance
+
+**FalkorDB Performance Optimization:**
+- **Memory Management**: Monitor Redis memory usage and limits
+- **Persistence Settings**: Choose appropriate persistence strategy
+- **Connection Pooling**: Use connection pooling for high throughput
+- **Query Patterns**: Optimize for FalkorDB's graph query capabilities
+- **Data Distribution**: Consider data partitioning for large graphs
 
 ### Maintenance Scheduling
 

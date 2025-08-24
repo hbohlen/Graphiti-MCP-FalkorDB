@@ -89,6 +89,8 @@ results = await graphiti.search(query="search query")
 ### Integration Points
 
 1. **Database Layer**: `driver/` provides abstraction over different graph databases
+   - **Neo4j Driver**: Production-ready, enterprise features, complex queries
+   - **FalkorDB Driver**: Lightweight, Redis-based, development-friendly
 2. **AI Layer**: `llm_client/` and `embedder/` handle AI operations
 3. **Search Layer**: `search/` combines multiple search strategies
 4. **Data Layer**: `models/` define the structure of graph elements
@@ -101,6 +103,20 @@ results = await graphiti.search(query="search query")
 - **Caching**: Leverage caching for frequently accessed data
 - **Parallel Processing**: Use async operations for concurrent tasks
 - **Memory Management**: Monitor memory usage with large graphs
+
+#### Database-Specific Performance
+
+**Neo4j Performance:**
+- Optimize Cypher queries for large datasets
+- Use appropriate indexes and constraints
+- Consider parallel runtime for enterprise deployments
+- Monitor memory usage and heap settings
+
+**FalkorDB Performance:**
+- Leverage in-memory operations for speed
+- Consider Redis persistence settings
+- Monitor Redis memory usage
+- Use connection pooling for high throughput
 
 ### Testing and Debugging
 

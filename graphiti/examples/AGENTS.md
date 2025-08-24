@@ -56,9 +56,17 @@ cd examples/[example_name]
 # Follow the README.md instructions for setup
 # Most examples require:
 export OPENAI_API_KEY=your_key
+
+# For Neo4j (default)
 export NEO4J_URI=bolt://localhost:7687
 export NEO4J_USER=neo4j
 export NEO4J_PASSWORD=your_password
+
+# For FalkorDB (alternative)
+export FALKORDB_HOST=localhost
+export FALKORDB_PORT=6379
+export FALKORDB_USERNAME=your_username  # optional
+export FALKORDB_PASSWORD=your_password  # optional
 
 # Run the example (varies by example)
 python example_script.py
@@ -73,6 +81,8 @@ jupyter notebook example.ipynb
 - **Environment Variables**: Set up proper environment configuration before running
 - **Understanding Patterns**: Study the code patterns for your specific use case
 - **Adaptation**: Use examples as templates for your own implementations
+- **Database Choice**: Consider FalkorDB for development/testing, Neo4j for production
+- **Performance Testing**: Test with both databases to understand performance characteristics
 
 ### Common Patterns
 

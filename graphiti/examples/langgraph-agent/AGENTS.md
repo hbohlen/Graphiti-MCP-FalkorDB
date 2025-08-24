@@ -29,6 +29,19 @@ This example shows how to:
 - Neo4j or FalkorDB database
 - LangSmith API key (optional, for tracing)
 
+### Database Setup Options
+
+#### Neo4j
+- Install Neo4j Desktop from https://neo4j.com/download/
+- Create a local database instance
+- Set up authentication credentials
+
+#### FalkorDB (Alternative)
+- Install via Docker: `docker run -p 6379:6379 falkordb/falkordb:latest`
+- Or install from source: https://github.com/FalkorDB/FalkorDB
+- FalkorDB Cloud service available at https://app.falkordb.cloud/
+- No authentication required by default for local instances
+
 ## Agent Guidelines
 
 ### Environment Setup
@@ -37,10 +50,17 @@ This example shows how to:
 # Required LLM access
 export OPENAI_API_KEY=your_openai_api_key
 
-# Database configuration
+# Database configuration (Neo4j)
 export NEO4J_URI=bolt://localhost:7687
 export NEO4J_USER=neo4j
 export NEO4J_PASSWORD=your_password
+
+# Alternative: Database configuration (FalkorDB)
+export FALKORDB_HOST=localhost
+export FALKORDB_PORT=6379
+export FALKORDB_USERNAME=your_username  # optional
+export FALKORDB_PASSWORD=your_password  # optional
+export DATABASE_TYPE=falkordb
 
 # Optional: LangSmith tracing
 export LANGSMITH_API_KEY=your_langsmith_key

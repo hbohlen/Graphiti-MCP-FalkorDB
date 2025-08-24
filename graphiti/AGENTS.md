@@ -99,14 +99,55 @@ docker-compose up
 - `USE_PARALLEL_RUNTIME` - Optional boolean for Neo4j parallel runtime (enterprise only)
 - Provider-specific keys: `ANTHROPIC_API_KEY`, `GOOGLE_API_KEY`, `GROQ_API_KEY`, `VOYAGE_API_KEY`
 
+#### Neo4j Environment Variables
+```bash
+export NEO4J_URI=bolt://localhost:7687    # default
+export NEO4J_USER=neo4j                   # default
+export NEO4J_PASSWORD=password            # required
+export NEO4J_DATABASE=neo4j               # optional, defaults to "neo4j"
+```
+
+#### FalkorDB Environment Variables
+```bash
+export FALKORDB_HOST=localhost             # default
+export FALKORDB_PORT=6379                  # default  
+export FALKORDB_USERNAME=                  # optional, no auth by default
+export FALKORDB_PASSWORD=                  # optional, no auth by default
+export FALKORDB_DATABASE=default_db        # optional, defaults to "default_db"
+# Alternative URI format:
+export FALKORDB_URI=falkor://localhost:6379
+```
+
 ### Database Setup
 
-- **Neo4j**: Version 5.26+ required, available via Neo4j Desktop
-  - Database name defaults to `neo4j` (hardcoded in Neo4jDriver)
-  - Override by passing `database` parameter to driver constructor
-- **FalkorDB**: Version 1.1.2+ as alternative backend
-  - Database name defaults to `default_db` (hardcoded in FalkorDriver)
-  - Override by passing `database` parameter to driver constructor
+#### Neo4j Setup
+- **Version**: 5.26+ required, available via Neo4j Desktop
+- **Database**: Name defaults to `neo4j` (hardcoded in Neo4jDriver)
+- **Override**: Pass `database` parameter to driver constructor
+- **Installation**: Download from https://neo4j.com/download/
+- **Configuration**: Requires authentication (username/password)
+
+#### FalkorDB Setup
+- **Version**: 1.1.2+ required as alternative backend
+- **Database**: Name defaults to `default_db` (hardcoded in FalkorDriver)
+- **Override**: Pass `database` parameter to driver constructor
+- **Installation Options**:
+  - **Docker**: `docker run -p 6379:6379 falkordb/falkordb:latest`
+  - **Source**: Build from https://github.com/FalkorDB/FalkorDB
+  - **Cloud**: FalkorDB Cloud service available
+- **Advantages**: 
+  - Redis-compatible protocol
+  - Lightweight setup
+  - Fast for development and testing
+  - No authentication required by default
+- **Environment Variables**:
+  ```bash
+  export FALKORDB_HOST=localhost      # default
+  export FALKORDB_PORT=6379          # default
+  export FALKORDB_USERNAME=          # optional
+  export FALKORDB_PASSWORD=          # optional
+  export FALKORDB_DATABASE=default_db # optional
+  ```
 
 ## Development Guidelines
 
@@ -156,6 +197,23 @@ When working with the MCP server, follow the patterns established in `mcp_server
 - Use the appropriate driver for your database backend (Neo4j/FalkorDB)
 - Implement proper error handling and logging
 - Consider performance implications of graph operations
+
+#### Database Driver Selection Guidelines
+
+**Choose Neo4j when:**
+- Working with production environments
+- Handling large datasets (>1M nodes)
+- Need enterprise features (clustering, backup, security)
+- Require APOC procedures or advanced Cypher features
+- Performance is critical for complex queries
+
+**Choose FalkorDB when:**
+- Development and testing environments
+- Prototyping and proof-of-concepts
+- Small to medium datasets (<100k nodes)
+- Need Redis ecosystem compatibility
+- Want simplified deployment and maintenance
+- Cost-conscious deployments
 
 ### Best Practices
 

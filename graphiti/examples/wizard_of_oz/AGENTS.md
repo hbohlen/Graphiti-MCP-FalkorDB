@@ -37,10 +37,17 @@ This example demonstrates:
 # Required for text analysis
 export OPENAI_API_KEY=your_openai_api_key
 
-# Database configuration
+# Database configuration (Neo4j)
 export NEO4J_URI=bolt://localhost:7687
 export NEO4J_USER=neo4j
 export NEO4J_PASSWORD=your_password
+
+# Alternative: Database configuration (FalkorDB)
+export FALKORDB_HOST=localhost
+export FALKORDB_PORT=6379
+export FALKORDB_USERNAME=your_username  # optional
+export FALKORDB_PASSWORD=your_password  # optional
+export DATABASE_TYPE=falkordb
 ```
 
 ### Running the Example

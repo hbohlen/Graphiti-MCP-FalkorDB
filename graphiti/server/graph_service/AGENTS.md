@@ -50,16 +50,36 @@ Core service logic provides:
 
 ### Development Setup
 
+#### With Neo4j
 ```bash
 cd server/
 # Install dependencies
 uv sync --extra dev
 
-# Set environment variables
+# Set environment variables for Neo4j
 export OPENAI_API_KEY=your_key
 export NEO4J_URI=bolt://localhost:7687
 export NEO4J_USER=neo4j
 export NEO4J_PASSWORD=password
+
+# Run development server
+uvicorn graph_service.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+#### With FalkorDB
+```bash
+cd server/
+# Install dependencies
+uv sync --extra dev
+
+# Set environment variables for FalkorDB
+export OPENAI_API_KEY=your_key
+export FALKORDB_HOST=localhost
+export FALKORDB_PORT=6379
+export DATABASE_TYPE=falkordb
+# Optional authentication
+export FALKORDB_USERNAME=your_username
+export FALKORDB_PASSWORD=your_password
 
 # Run development server
 uvicorn graph_service.main:app --reload --host 0.0.0.0 --port 8000
@@ -346,10 +366,21 @@ production_config = {
 ```python
 # Configuration for different environments
 class Settings(BaseSettings):
-    # Database settings
+    # Database selection
+    database_type: str = "neo4j"  # or "falkordb"
+    
+    # Neo4j settings
     neo4j_uri: str = "bolt://localhost:7687"
     neo4j_user: str = "neo4j"
     neo4j_password: str = "password"
+    neo4j_database: str = "neo4j"
+    
+    # FalkorDB settings
+    falkordb_host: str = "localhost"
+    falkordb_port: int = 6379
+    falkordb_username: Optional[str] = None
+    falkordb_password: Optional[str] = None
+    falkordb_database: str = "default_db"
     
     # API settings
     openai_api_key: str
@@ -367,6 +398,26 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
+
+# Database driver factory
+def create_database_driver(settings: Settings):
+    if settings.database_type.lower() == "falkordb":
+        from graphiti_core.driver import FalkorDBDriver
+        return FalkorDBDriver(
+            host=settings.falkordb_host,
+            port=settings.falkordb_port,
+            username=settings.falkordb_username,
+            password=settings.falkordb_password,
+            database=settings.falkordb_database
+        )
+    else:
+        from graphiti_core.driver import Neo4jDriver
+        return Neo4jDriver(
+            uri=settings.neo4j_uri,
+            user=settings.neo4j_user,
+            password=settings.neo4j_password,
+            database=settings.neo4j_database
+        )
 ```
 
 ### Security Considerations

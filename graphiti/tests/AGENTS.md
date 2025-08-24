@@ -58,14 +58,26 @@ uv sync --extra dev
 
 # Set up test environment variables
 export OPENAI_API_KEY=test_key
+
+# For Neo4j testing
 export NEO4J_URI=bolt://localhost:7687
 export NEO4J_USER=neo4j
 export NEO4J_PASSWORD=test_password
 
+# For FalkorDB testing (alternative)
+export FALKORDB_HOST=localhost
+export FALKORDB_PORT=6379
+export DATABASE_TYPE=falkordb
+
 # For integration tests, ensure database is running
+# Neo4j option:
 docker run -d --name neo4j-test -p 7687:7687 -p 7474:7474 \
   --env NEO4J_AUTH=neo4j/test_password \
   neo4j:5.22.0
+
+# FalkorDB option (alternative):
+docker run -d --name falkordb-test -p 6379:6379 \
+  falkordb/falkordb:latest
 ```
 
 ### Best Practices for Agents
@@ -127,19 +139,76 @@ class TestEntityOperations:
 ```python
 import pytest
 from graphiti_core import Graphiti
-from graphiti_core.driver import Neo4jDriver
+from graphiti_core.driver import Neo4jDriver, FalkorDBDriver
 
 @pytest.mark.integration
 class TestGraphitiIntegration:
     @pytest.fixture(scope="class")
-    async def graphiti_instance(self):
-        # Setup real database connection for integration tests
+    async def graphiti_instance_neo4j(self):
+        # Setup Neo4j database connection for integration tests
         driver = Neo4jDriver(
             uri="bolt://localhost:7687",
             user="neo4j",
             password="test_password",
             database="test_db"
         )
+        
+        graphiti = Graphiti(driver=driver)
+        await graphiti.initialize()
+        
+        yield graphiti
+        
+        # Cleanup
+        await graphiti.close()
+    
+    @pytest.fixture(scope="class")  
+    async def graphiti_instance_falkordb(self):
+        # Setup FalkorDB database connection for integration tests
+        driver = FalkorDBDriver(
+            host="localhost",
+            port=6379,
+            database="test_db"
+        )
+        
+        graphiti = Graphiti(driver=driver)
+        await graphiti.initialize()
+        
+        yield graphiti
+        
+        # Cleanup
+        await graphiti.close()
+    
+    async def test_episode_lifecycle_neo4j(self, graphiti_instance_neo4j):
+        # Test complete episode lifecycle with Neo4j
+        graphiti = graphiti_instance_neo4j
+        
+        episode = await graphiti.add_episode(
+            name="Test Episode",
+            content="This is test content",
+            timestamp=datetime.utcnow()
+        )
+        
+        assert episode.uuid is not None
+        
+        # Test search
+        results = await graphiti.search("test content")
+        assert len(results) > 0
+    
+    async def test_episode_lifecycle_falkordb(self, graphiti_instance_falkordb):
+        # Test complete episode lifecycle with FalkorDB
+        graphiti = graphiti_instance_falkordb
+        
+        episode = await graphiti.add_episode(
+            name="Test Episode",
+            content="This is test content",
+            timestamp=datetime.utcnow()
+        )
+        
+        assert episode.uuid is not None
+        
+        # Test search
+        results = await graphiti.search("test content")
+        assert len(results) > 0
         
         graphiti = Graphiti(driver=driver)
         await graphiti.initialize()

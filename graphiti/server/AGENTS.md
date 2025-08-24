@@ -112,8 +112,9 @@ async def get_entity_relationships(entity_uuid):
 
 ### Server Configuration
 
+#### Neo4j Configuration
 ```python
-# Example server configuration
+# Example server configuration for Neo4j
 server_config = {
     "host": "0.0.0.0",
     "port": 8000,
@@ -124,7 +125,7 @@ server_config = {
     "cors_origins": ["http://localhost:3000", "https://myapp.com"]
 }
 
-# Environment variables
+# Neo4j environment variables
 environment_vars = {
     "OPENAI_API_KEY": "your-openai-key",
     "NEO4J_URI": "bolt://localhost:7687",
@@ -134,10 +135,37 @@ environment_vars = {
 }
 ```
 
+#### FalkorDB Configuration
+```python
+# Example server configuration for FalkorDB
+server_config = {
+    "host": "0.0.0.0",
+    "port": 8000,
+    "workers": 4,
+    "log_level": "info",
+    "access_log": True,
+    "cors_enabled": True,
+    "cors_origins": ["http://localhost:3000", "https://myapp.com"]
+}
+
+# FalkorDB environment variables
+environment_vars = {
+    "OPENAI_API_KEY": "your-openai-key",
+    "FALKORDB_HOST": "localhost",
+    "FALKORDB_PORT": "6379",
+    "FALKORDB_USERNAME": "",  # optional
+    "FALKORDB_PASSWORD": "",  # optional
+    "FALKORDB_DATABASE": "default_db",
+    "DATABASE_TYPE": "falkordb",
+    "LOG_LEVEL": "INFO"
+}
+```
+
 ### Docker Deployment
 
+#### Neo4j Docker Setup
 ```yaml
-# Example docker-compose.yml setup
+# Example docker-compose.yml setup for Neo4j
 version: '3.8'
 
 services:
@@ -165,6 +193,35 @@ services:
 
 volumes:
   neo4j_data:
+```
+
+#### FalkorDB Docker Setup
+```yaml
+# Example docker-compose.yml setup for FalkorDB
+version: '3.8'
+
+services:
+  graphiti-server:
+    image: zepai/graphiti:latest
+    ports:
+      - "8000:8000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - FALKORDB_HOST=falkordb
+      - FALKORDB_PORT=6379
+      - DATABASE_TYPE=falkordb
+    depends_on:
+      - falkordb
+
+  falkordb:
+    image: falkordb/falkordb:latest
+    ports:
+      - "6379:6379"  # Redis protocol
+    volumes:
+      - falkordb_data:/data
+
+volumes:
+  falkordb_data:
 ```
 
 ### API Client Development

@@ -38,10 +38,14 @@ Production-ready driver for Neo4j databases:
 
 Alternative driver for FalkorDB:
 
-- Redis-based graph database
-- Lightweight and fast for smaller deployments
-- Compatible with FalkorDB 1.1.2+
-- Suitable for development and testing
+- **Redis-based**: Built on Redis infrastructure with graph capabilities
+- **Version**: Compatible with FalkorDB 1.1.2+
+- **Protocol**: Uses Redis protocol (RESP) for communication
+- **Performance**: Fast for smaller datasets and simple queries
+- **Setup**: Minimal configuration, no authentication required by default
+- **Ideal for**: Development, testing, lightweight deployments
+- **Cloud Support**: Compatible with FalkorDB Cloud service
+- **Memory**: In-memory graph operations with Redis persistence options
 
 ## Agent Guidelines
 
@@ -52,8 +56,8 @@ Alternative driver for FalkorDB:
 
 ### Driver Usage Patterns
 
+#### Neo4j Setup
 ```python
-# Neo4j setup
 from graphiti_core.driver import Neo4jDriver
 
 driver = Neo4jDriver(
@@ -62,15 +66,32 @@ driver = Neo4jDriver(
     password="password",
     database="neo4j"  # optional, defaults to "neo4j"
 )
+```
 
-# FalkorDB setup  
+#### FalkorDB Setup
+```python
 from graphiti_core.driver import FalkorDBDriver
 
+# Basic setup (no authentication)
+driver = FalkorDBDriver(
+    host="localhost",         # default
+    port=6379,               # default
+    database="default_db"    # optional, defaults to "default_db"
+)
+
+# With authentication (if configured)
+driver = FalkorDBDriver(
+    host="localhost",
+    port=6379,
+    username="your_username",  # optional
+    password="your_password",  # optional
+    database="my_graph_db"
+)
+
+# Using URI format (alternative)
 driver = FalkorDBDriver(
     uri="falkor://localhost:6379",
-    username="default",  # optional
-    password=None,       # optional
-    database="default_db"  # optional, defaults to "default_db"
+    database="my_graph_db"
 )
 ```
 
@@ -104,11 +125,20 @@ All drivers support these core operations:
 
 #### FalkorDB Driver
 
-- **Redis Integration**: Leverages Redis infrastructure
+- **Redis Integration**: Leverages Redis infrastructure and protocol
 - **Speed**: Fast for smaller datasets and simple queries
-- **Simplicity**: Easier setup and configuration
-- **Development**: Ideal for development and testing
-- **Limitations**: May have feature limitations compared to Neo4j
+- **Simplicity**: Easier setup and configuration than Neo4j
+- **Development**: Ideal for development and testing environments
+- **No Authentication**: Works without authentication by default
+- **Memory Efficiency**: In-memory operations with optional persistence
+- **Query Language**: Supports Cypher-like queries through OpenCypher
+- **Limitations**: 
+  - Smaller ecosystem compared to Neo4j
+  - Less advanced indexing options
+  - Limited enterprise features
+  - Performance may degrade with very large datasets
+- **Docker Support**: Easy deployment with `docker run falkordb/falkordb`
+- **Cloud Options**: Available as managed service through FalkorDB Cloud
 
 ### Development Guidelines
 

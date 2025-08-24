@@ -82,11 +82,36 @@ docker compose up
 
 This starts:
 - Graphiti MCP server on port 8000
-- Neo4j database for graph storage
+- Neo4j database for graph storage (default)
 - Automatic MCP server registration
+
+For **FalkorDB deployment**, modify `docker-compose.yml`:
+```yaml
+services:
+  graphiti-mcp:
+    # ... existing configuration
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - FALKORDB_HOST=falkordb
+      - FALKORDB_PORT=6379
+      - DATABASE_TYPE=falkordb
+    depends_on:
+      - falkordb
+
+  falkordb:
+    image: falkordb/falkordb:latest
+    ports:
+      - "6379:6379"
+    volumes:
+      - falkordb_data:/data
+      
+volumes:
+  falkordb_data:
+```
 
 #### Local Development
 
+**With Neo4j:**
 ```bash
 cd mcp_server/
 # Install dependencies
@@ -97,6 +122,25 @@ export OPENAI_API_KEY=your_key
 export NEO4J_URI=bolt://localhost:7687
 export NEO4J_USER=neo4j
 export NEO4J_PASSWORD=password
+
+# Run server
+python graphiti_mcp_server.py
+```
+
+**With FalkorDB:**
+```bash
+cd mcp_server/
+# Install dependencies
+uv sync
+
+# Set environment variables
+export OPENAI_API_KEY=your_key
+export FALKORDB_HOST=localhost
+export FALKORDB_PORT=6379
+export DATABASE_TYPE=falkordb
+# Optional authentication
+export FALKORDB_USERNAME=your_username
+export FALKORDB_PASSWORD=your_password
 
 # Run server
 python graphiti_mcp_server.py

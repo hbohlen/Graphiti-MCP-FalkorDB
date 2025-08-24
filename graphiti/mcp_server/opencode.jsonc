@@ -1,0 +1,66 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    // Graphiti Memory Service - via SSE transport (Docker deployment)
+    "graphiti-memory": {
+      "type": "local",
+      "command": ["npx", "-y", "mcp-remote", "http://localhost:8001/sse"],
+      "enabled": true,
+      "environment": {
+        // Client-side environment variables if needed
+      },
+      "description": "Graphiti knowledge graph memory service with FalkorDB backend"
+    },
+    
+    // Alternative: Direct Python execution (if not using Docker)
+    "graphiti-memory-python": {
+      "type": "local",
+      "command": ["python", "graphiti_mcp_server.py", "--transport", "sse", "--database-type", "falkordb"],
+      "enabled": false,  // Set to true if using this method instead
+      "environment": {
+        "OPENAI_API_KEY": "your-openai-key",
+        "DATABASE_TYPE": "falkordb",
+        "FALKORDB_HOST": "localhost",
+        "FALKORDB_PORT": "6379",
+        // Dual-provider setup (if using different providers for LLM and embeddings)
+        "EMBEDDING_API_KEY": "your-embedding-api-key",
+        "EMBEDDING_BASE_URL": "https://api.openai.com/v1",
+        "OPENAI_BASE_URL": "https://openrouter.ai/api/v1",  // If using OpenRouter for LLM
+        "MODEL_NAME": "moonshotai/kimi-k2:free"
+      },
+      "description": "Direct Python execution of Graphiti MCP server"
+    },
+    
+    // Alternative: If the server is deployed remotely
+    "graphiti-memory-remote": {
+      "type": "remote",
+      "url": "http://localhost:8001/sse",
+     
+    }
+  }
+}
+
+// Setup Instructions:
+// 
+// 1. Start the Docker containers:
+//    cd mcp_server && docker compose --profile falkordb up -d
+//
+// 2. The default configuration uses "graphiti-memory" which connects via npx mcp-remote
+//
+// 3. Available MCP tools:
+//    - add_memory: Add episodes to the knowledge graph
+//    - search_memory_nodes: Search for entities  
+//    - search_memory_facts: Search for relationships
+//    - get_episodes: Retrieve recent episodes
+//    - delete_episode: Delete an episode
+//    - delete_entity_edge: Delete an entity relationship
+//    - get_entity_edge: Get entity edge details
+//    - clear_graph: Clear all data (use with caution)
+//
+// 4. For dual-provider setup (OpenRouter + OpenAI):
+//    Configure your .env file in the mcp_server directory
+//
+// 5. Access points:
+//    - MCP Server: http://localhost:8001/sse
+//    - FalkorDB: localhost:6379
+//    - FalkorDB Browser UI: http://localhost:3000

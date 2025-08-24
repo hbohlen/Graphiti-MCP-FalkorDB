@@ -4,7 +4,7 @@ This file provides guidance to AI agents when working with the MCP (Model Contex
 
 ## Directory Overview
 
-This directory contains the Model Context Protocol server implementation that allows AI assistants (like Claude, Cursor, and other MCP clients) to interact with Graphiti's knowledge graph capabilities through the MCP protocol.
+This directory contains the Model Context Protocol server implementation that allows AI assistants (like Claude, Cursor, and other MCP clients) to interact with Graphiti's knowledge graph capabilities through the MCP protocol. The server uses FalkorDB as the database backend.
 
 ## Key Features
 
@@ -22,10 +22,10 @@ The Graphiti MCP server provides:
 
 The MCP server exposes Graphiti functionality through standardized MCP tools:
 
-- **Memory Tools**: `add_memory`, `search_memories` for episode management
-- **Entity Tools**: `search_nodes`, `search_facts` for entity and relationship queries
+- **Memory Tools**: `add_memory`, `search_memory_nodes`, `search_memory_facts` for episode and entity management
+- **Entity Tools**: `get_entity_edge`, `delete_entity_edge` for entity relationship management
+- **Episode Tools**: `get_episodes`, `delete_episode` for episode operations
 - **Maintenance Tools**: `clear_graph` for graph operations
-- **Group Tools**: Group-based filtering and organization
 
 ### Integration Patterns
 
@@ -36,20 +36,9 @@ Common integration patterns:
 3. **Context Management**: Maintaining context across sessions
 4. **Information Retrieval**: Semantic search and fact discovery
 
-## Agent Guidelines
+## MCP Client Configuration
 
-### Basic Usage
-
-The MCP server follows the patterns established in `cursor_rules.md`:
-
-1. **Always search first**: Use search tools before adding new information
-2. **Use specific filters**: Apply entity type filters (`Preference`, `Procedure`, `Requirement`)
-3. **Store immediately**: Use `add_memory` to store new information right away
-4. **Follow procedures**: Respect discovered procedures and established preferences
-
-### MCP Client Configuration
-
-#### Claude Desktop Configuration
+### Claude Desktop Configuration
 
 ```json
 {
@@ -58,387 +47,347 @@ The MCP server follows the patterns established in `cursor_rules.md`:
       "command": "npx",
       "args": [
         "mcp-remote",
-        "http://localhost:8000/sse"
+        "http://localhost:8001/sse"
       ]
     }
   }
 }
 ```
 
-#### Cursor IDE Configuration
+### Cursor IDE Configuration
 
 Set up the MCP server endpoint in your Cursor settings:
-- Server URL: `http://localhost:8000/sse`
+- Server URL: `http://localhost:8001/sse`
 - Protocol: Server-Sent Events (SSE)
 
-### Server Setup and Deployment
+## Server Configuration
 
-#### Docker Deployment
+### Database Configuration
+
+The Graphiti MCP server uses FalkorDB as its graph database backend.
+
+#### FalkorDB Configuration
+
+- `DATABASE_TYPE`: Set to `falkordb`
+- `FALKORDB_HOST`: FalkorDB host (default: `localhost` or `falkordb` in Docker)
+- `FALKORDB_PORT`: FalkorDB port (default: `6379`)
+- `FALKORDB_USERNAME`: FalkorDB username (optional)
+- `FALKORDB_PASSWORD`: FalkorDB password (optional)
+
+### LLM and Embedding Provider Configuration
+
+The Graphiti MCP server supports using different API providers for LLM operations and embeddings. This is particularly useful when your primary LLM provider doesn't offer embedding models.
+
+#### Single Provider Setup (Default)
+
+When using a provider that offers both LLM and embedding capabilities (e.g., OpenAI):
+
+- `OPENAI_API_KEY`: Your API key
+- `OPENAI_BASE_URL`: Optional custom base URL (defaults to OpenAI's API)
+- `MODEL_NAME`: The LLM model to use (e.g., `gpt-4`)
+
+#### Dual Provider Setup
+
+When using different providers for LLM and embeddings (e.g., OpenRouter for LLM, OpenAI for embeddings):
+
+##### LLM Configuration:
+- `OPENAI_API_KEY`: Your LLM provider's API key
+- `OPENAI_BASE_URL`: Your LLM provider's base URL (e.g., `https://openrouter.ai/api/v1`)
+- `MODEL_NAME`: The LLM model to use (e.g., `moonshotai/kimi-k2:free`)
+
+##### Embedding Configuration:
+- `EMBEDDING_API_KEY`: Your embedding provider's API key
+- `EMBEDDING_BASE_URL`: Your embedding provider's base URL (e.g., `https://api.openai.com/v1`)
+- `EMBEDDING_MODEL`: The embedding model to use (default: `text-embedding-3-small`)
+
+#### Example .env Configuration for Dual Providers:
+
+```env
+# Database Configuration
+DATABASE_TYPE=falkordb
+FALKORDB_HOST=falkordb
+FALKORDB_PORT=6379
+
+# LLM Provider (OpenRouter)
+OPENAI_API_KEY=sk-or-v1-your-openrouter-key
+OPENAI_BASE_URL=https://openrouter.ai/api/v1
+MODEL_NAME=moonshotai/kimi-k2:free
+
+# Embedding Provider (OpenAI)
+EMBEDDING_API_KEY=sk-proj-your-openai-key
+EMBEDDING_BASE_URL=https://api.openai.com/v1
+EMBEDDING_MODEL=text-embedding-3-small
+
+# Other settings
+GROUP_ID=cognitive_copilot
+SEMAPHORE_LIMIT=10
+```
+
+#### Common Provider Combinations:
+
+1. **OpenRouter (LLM) + OpenAI (Embeddings)**:
+   - Use when you want to leverage OpenRouter's diverse model selection
+   - OpenRouter doesn't provide embedding models, so OpenAI handles embeddings
+
+2. **Anthropic (LLM) + OpenAI (Embeddings)**:
+   - Use Claude models for LLM operations
+   - OpenAI for embedding generation
+
+3. **Local LLM + OpenAI (Embeddings)**:
+   - Use a locally hosted LLM (via Ollama, vLLM, etc.)
+   - Cloud-based embeddings for better quality
+
+#### Troubleshooting Dual Provider Setup:
+
+1. **Embeddings failing with "model not found"**:
+   - Ensure `EMBEDDING_BASE_URL` is set to the correct embedding provider
+   - Verify `EMBEDDING_API_KEY` is valid for the embedding provider
+
+2. **Docker containers not picking up environment variables**:
+   - Ensure your `.env` file is in the `mcp_server/` directory
+   - Rebuild containers after updating `.env`: `docker compose --profile falkordb up -d --build`
+   - Verify variables are loaded: `docker exec mcp_server-graphiti-mcp-falkordb-1 printenv | grep -E "EMBEDDING|OPENAI"`
+
+3. **VS Code MCP client connection issues after restart**:
+   - Reload the VS Code window after restarting Docker containers
+   - The MCP client needs to reconnect to the new server instance
+
+### Code Modifications for Dual Provider Support
+
+If your `graphiti_mcp_server.py` doesn't support separate embedding providers out of the box, you'll need to modify it. Here are the required changes:
+
+**1. Add support for separate embedding API key (around line 408):**
+
+```python
+# Original code - only uses OPENAI_API_KEY for everything
+api_key = os.environ.get('OPENAI_API_KEY')
+if not api_key:
+    raise ValueError("OPENAI_API_KEY environment variable is required")
+
+# Modified code - check for separate embedding key
+api_key = os.environ.get('OPENAI_API_KEY')
+if not api_key:
+    raise ValueError("OPENAI_API_KEY environment variable is required")
+
+# Check for separate embedding API key
+embedding_api_key = os.environ.get('EMBEDDING_API_KEY') or api_key
+```
+
+**2. Add support for separate embedding base URL (around line 444-456):**
+
+```python
+# Original embedder configuration
+embedder_config = OpenAIEmbedderConfig(
+    api_key=self.api_key,
+    embedding_model=self.model
+)
+
+# Modified configuration with base_url support
+# Check for separate embedding base URL
+embedding_base_url = os.environ.get('EMBEDDING_BASE_URL')
+
+embedder_config = OpenAIEmbedderConfig(
+    api_key=embedding_api_key,  # Use the separate embedding key from step 1
+    embedding_model=self.model,
+    base_url=embedding_base_url  # This will be None if not set, which is fine
+)
+```
+
+**3. After making these changes:**
+
+1. Rebuild the Docker image:
+   ```bash
+   docker compose --profile falkordb up -d --build
+   ```
+
+2. Verify the environment variables are loaded:
+   ```bash
+   docker exec mcp_server-graphiti-mcp-falkordb-1 printenv | grep -E "EMBEDDING|OPENAI"
+   ```
+
+3. Test by adding a memory - embeddings should now go to the correct provider
+
+**Note:** The exact line numbers may vary depending on your version of the code. Look for the sections where `OpenAIEmbedderConfig` is instantiated and where API keys are retrieved from environment variables.
+
+## Docker Deployment
+
+### Start FalkorDB and MCP Server:
 
 ```bash
 cd mcp_server/
-docker compose up
+docker compose --profile falkordb up -d
 ```
 
 This starts:
-- Graphiti MCP server on port 8000
-- Neo4j database for graph storage
-- Automatic MCP server registration
+- Graphiti MCP server on port 8001
+- FalkorDB database on port 6379
+- FalkorDB browser UI on port 3000
 
-#### Local Development
+### Stop Services:
+
+```bash
+docker compose --profile falkordb down
+```
+
+### Rebuild After Changes:
+
+```bash
+docker compose --profile falkordb up -d --build
+```
+
+## Local Development
+
+### Install Dependencies and Run Locally:
 
 ```bash
 cd mcp_server/
-# Install dependencies
-uv sync
+# Install dependencies with FalkorDB support
+uv sync --extra falkordb
 
 # Set environment variables
 export OPENAI_API_KEY=your_key
-export NEO4J_URI=bolt://localhost:7687
-export NEO4J_USER=neo4j
-export NEO4J_PASSWORD=password
+export DATABASE_TYPE=falkordb
+export FALKORDB_HOST=localhost
+export FALKORDB_PORT=6379
 
 # Run server
-python graphiti_mcp_server.py
+python graphiti_mcp_server.py --database-type falkordb
 ```
 
-### Best Practices for Agents
+## MCP Tools Reference
 
-#### Memory Management
+### add_memory
 
-1. **Search Before Adding**: Always search existing knowledge before creating new entries
-2. **Specific Queries**: Use specific, well-structured search queries
-3. **Entity Type Filtering**: Use entity type filters for targeted searches
-4. **Immediate Storage**: Store new information as soon as it's discovered
+Add an episode to memory. This is the primary way to add information to the graph.
 
-#### Information Organization
+**Parameters:**
+- `name` (str): Name of the episode
+- `episode_body` (str): The content of the episode (text, JSON, or message format)
+- `group_id` (str, optional): A unique ID for this graph
+- `source` (str, optional): Source type - "text", "json", or "message"
+- `source_description` (str, optional): Description of the source
+- `uuid` (str, optional): Optional UUID for the episode
 
-```python
-# Good: Specific entity type search
-search_nodes(
-    query="user preferences for notification settings",
-    entity_types=["Preference"]
-)
+**Examples:**
 
-# Good: Contextual fact search
-search_facts(
-    query="collaboration between engineering teams",
-    entity_types=["Team", "Project"]
-)
+```json
+// Adding plain text
+{
+  "name": "User Profile",
+  "episode_body": "John prefers morning meetings",
+  "source": "text",
+  "group_id": "user_data"
+}
 
-# Good: Immediate storage of new information
-add_memory(
-    content="User prefers email notifications over push notifications",
-    entity_types=["Preference"]
-)
+// Adding JSON data
+{
+  "name": "Customer Data",
+  "episode_body": "{\"company\": \"Acme Corp\", \"size\": \"enterprise\"}",
+  "source": "json",
+  "source_description": "CRM export"
+}
 ```
 
-#### Context Preservation
+### search_memory_nodes
 
-1. **Group Management**: Use group_id for organizing related information
-2. **Temporal Context**: Include temporal information in memories
-3. **Relationship Tracking**: Store relationships between entities
-4. **Procedure Documentation**: Document established procedures
+Search the graph memory for relevant node summaries.
 
-### Common MCP Operations
+**Parameters:**
+- `query` (str): The search query
+- `group_ids` (list, optional): List of group IDs to filter results
+- `max_nodes` (int, optional): Maximum number of nodes to return (default: 10)
+- `center_node_uuid` (str, optional): UUID of a node to center the search around
+- `entity` (str, optional): Entity type filter ("Preference", "Procedure")
 
-#### Adding Memory
+### search_memory_facts
 
-```python
-# Add structured information
-await add_memory(
-    content="John Doe prefers morning meetings and uses VS Code for development",
-    entity_types=["Person", "Preference", "Tool"]
-)
+Search the graph memory for relevant facts (relationships between entities).
 
-# Add procedural information
-await add_memory(
-    content="For code reviews: 1) Check tests, 2) Verify documentation, 3) Test locally",
-    entity_types=["Procedure"]
-)
-```
+**Parameters:**
+- `query` (str): The search query
+- `group_ids` (list, optional): List of group IDs to filter results
+- `max_facts` (int, optional): Maximum number of facts to return (default: 10)
+- `center_node_uuid` (str, optional): UUID of a node to center the search around
 
-#### Searching Information
+### get_episodes
 
-```python
-# Search for specific entity types
-preferences = await search_nodes(
-    query="development environment preferences",
-    entity_types=["Preference"],
-    limit=10
-)
+Get the most recent memory episodes for a specific group.
 
-# Search for relationships
-collaborations = await search_facts(
-    query="team collaboration patterns",
-    entity_types=["Team", "Person"],
-    limit=20
-)
-```
+**Parameters:**
+- `group_id` (str, optional): ID of the group to retrieve episodes from
+- `last_n` (int, optional): Number of most recent episodes to retrieve (default: 10)
 
-#### Context-Aware Search
+### delete_episode
 
-```python
-# Use center node for contextual search
-team_context = await search_nodes(
-    query="development practices",
-    center_node_uuid="engineering-team-uuid",
-    entity_types=["Procedure", "Requirement"]
-)
-```
+Delete an episode from the graph memory.
 
-### Advanced Usage Patterns
+**Parameters:**
+- `uuid` (str): UUID of the episode to delete
 
-#### Workflow Integration
+### delete_entity_edge
 
-```python
-# Example workflow: Project planning assistance
-async def project_planning_workflow():
-    # 1. Search for existing procedures
-    procedures = await search_nodes(
-        query="project planning procedures",
-        entity_types=["Procedure"]
-    )
-    
-    # 2. Search for team preferences
-    preferences = await search_nodes(
-        query="team planning preferences",
-        entity_types=["Preference"]
-    )
-    
-    # 3. Store new project information
-    await add_memory(
-        content="New project: AI assistant with requirements for scalability and performance",
-        entity_types=["Project", "Requirement"]
-    )
-    
-    # 4. Find related teams and expertise
-    expertise = await search_facts(
-        query="AI development expertise",
-        entity_types=["Person", "Skill"]
-    )
-```
+Delete an entity edge from the graph memory.
 
-#### Knowledge Synthesis
+**Parameters:**
+- `uuid` (str): UUID of the entity edge to delete
 
-```python
-# Combine information from multiple searches
-async def synthesize_knowledge(topic):
-    # Search multiple entity types
-    entities = await search_nodes(
-        query=topic,
-        entity_types=["Concept", "Procedure", "Requirement"]
-    )
-    
-    # Search for relationships
-    relationships = await search_facts(
-        query=f"{topic} relationships",
-        limit=50
-    )
-    
-    # Synthesize findings
-    synthesis = analyze_and_combine(entities, relationships)
-    
-    # Store synthesis as new knowledge
-    await add_memory(
-        content=f"Knowledge synthesis for {topic}: {synthesis}",
-        entity_types=["Analysis", "Concept"]
-    )
-```
+### get_entity_edge
 
-### Error Handling and Recovery
+Get an entity edge from the graph memory by its UUID.
 
-```python
-# Robust MCP operations
-async def safe_memory_operation(content, entity_types):
-    try:
-        # Try to add memory
-        result = await add_memory(content, entity_types)
-        return result
-    except ConnectionError:
-        # Handle connection issues
-        logger.warning("MCP server connection lost, retrying...")
-        await asyncio.sleep(1)
-        return await add_memory(content, entity_types)
-    except ValidationError as e:
-        # Handle validation errors
-        logger.error(f"Invalid memory content: {e}")
-        # Attempt to fix and retry
-        cleaned_content = clean_content(content)
-        return await add_memory(cleaned_content, entity_types)
-```
+**Parameters:**
+- `uuid` (str): UUID of the entity edge to retrieve
 
-### Performance Optimization
+### clear_graph
 
-#### Batch Operations
+Clear all data from the graph memory and rebuild indices. Use with caution.
 
-```python
-# Batch multiple related memories
-async def batch_add_memories(memory_items):
-    tasks = []
-    for item in memory_items:
-        task = add_memory(
-            content=item["content"],
-            entity_types=item["entity_types"]
-        )
-        tasks.append(task)
-    
-    # Execute in parallel with semaphore for rate limiting
-    semaphore = asyncio.Semaphore(5)  # Limit concurrent operations
-    
-    async def controlled_add(task):
-        async with semaphore:
-            return await task
-    
-    results = await asyncio.gather(
-        *[controlled_add(task) for task in tasks],
-        return_exceptions=True
-    )
-    
-    return results
-```
+## Agent Workflow Guidelines
 
-#### Smart Caching
+These guidelines help AI agents effectively use Graphiti's MCP tools for memory management and knowledge retrieval.
 
-```python
-# Cache frequent searches
-from functools import lru_cache
-import time
+### Before Starting Any Task
 
-class MCPCache:
-    def __init__(self, ttl=300):  # 5 minute TTL
-        self.cache = {}
-        self.ttl = ttl
-    
-    def get(self, key):
-        if key in self.cache:
-            result, timestamp = self.cache[key]
-            if time.time() - timestamp < self.ttl:
-                return result
-            else:
-                del self.cache[key]
-        return None
-    
-    def set(self, key, value):
-        self.cache[key] = (value, time.time())
+- **Always search first:** Use the `search_memory_nodes` tool to look for relevant preferences and procedures before beginning work.
+- **Search for facts too:** Use the `search_memory_facts` tool to discover relationships and factual information that may be relevant to your task.
+- **Filter by entity type:** Specify `Preference`, `Procedure`, or `Requirement` in your node search to get targeted results.
+- **Review all matches:** Carefully examine any preferences, procedures, or facts that match your current task.
 
-cache = MCPCache()
+### Always Save New or Updated Information
 
-async def cached_search_nodes(query, entity_types=None):
-    cache_key = f"{query}:{entity_types}"
-    cached_result = cache.get(cache_key)
-    
-    if cached_result:
-        return cached_result
-    
-    result = await search_nodes(query, entity_types)
-    cache.set(cache_key, result)
-    return result
-```
+- **Capture requirements and preferences immediately:** When a user expresses a requirement or preference, use `add_memory` to store it right away.
+  - _Best practice:_ Split very long requirements into shorter, logical chunks.
+- **Be explicit if something is an update to existing knowledge.** Only add what's changed or new to the graph.
+- **Document procedures clearly:** When you discover how a user wants things done, record it as a procedure.
+- **Record factual relationships:** When you learn about connections between entities, store these as facts.
+- **Be specific with categories:** Label preferences and procedures with clear categories for better retrieval later.
 
-### Security and Privacy
+### During Your Work
 
-#### Data Sanitization
+- **Respect discovered preferences:** Align your work with any preferences you've found.
+- **Follow procedures exactly:** If you find a procedure for your current task, follow it step by step.
+- **Apply relevant facts:** Use factual information to inform your decisions and recommendations.
+- **Stay consistent:** Maintain consistency with previously identified preferences, procedures, and facts.
 
-```python
-import re
+### Workflow Best Practices
 
-def sanitize_content(content):
-    """Remove sensitive information before storage"""
-    # Remove potential PII patterns
-    patterns = [
-        r'\b\d{3}-\d{2}-\d{4}\b',  # SSN
-        r'\b\d{4}[- ]?\d{4}[- ]?\d{4}[- ]?\d{4}\b',  # Credit card
-        r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b',  # Email
-    ]
-    
-    sanitized = content
-    for pattern in patterns:
-        sanitized = re.sub(pattern, '[REDACTED]', sanitized)
-    
-    return sanitized
+- **Search before suggesting:** Always check if there's established knowledge before making recommendations.
+- **Combine node and fact searches:** For complex tasks, search both nodes and facts to build a complete picture.
+- **Use `center_node_uuid`:** When exploring related information, center your search around a specific node.
+- **Prioritize specific matches:** More specific information takes precedence over general information.
+- **Be proactive:** If you notice patterns in user behavior, consider storing them as preferences or procedures.
 
-# Use in memory operations
-async def safe_add_memory(content, entity_types):
-    sanitized_content = sanitize_content(content)
-    return await add_memory(sanitized_content, entity_types)
-```
+**Remember:** The knowledge graph is your memory. Use it consistently to provide personalized assistance that respects the user's established preferences, procedures, and factual context.
 
-### Monitoring and Debugging
-
-#### Operation Logging
-
-```python
-import logging
-
-logger = logging.getLogger("mcp_operations")
-
-class MCPLogger:
-    @staticmethod
-    async def log_operation(operation, **kwargs):
-        logger.info(f"MCP Operation: {operation}", extra=kwargs)
-    
-    @staticmethod
-    async def log_search(query, entity_types, results_count):
-        await MCPLogger.log_operation(
-            "search",
-            query=query,
-            entity_types=entity_types,
-            results_count=results_count
-        )
-    
-    @staticmethod
-    async def log_memory_add(content_length, entity_types):
-        await MCPLogger.log_operation(
-            "add_memory",
-            content_length=content_length,
-            entity_types=entity_types
-        )
-
-# Usage in operations
-async def logged_search_nodes(query, entity_types=None):
-    results = await search_nodes(query, entity_types)
-    await MCPLogger.log_search(query, entity_types, len(results))
-    return results
-```
-
-### Testing MCP Integration
-
-```python
-import pytest
-from unittest.mock import AsyncMock
-
-@pytest.fixture
-def mock_mcp_client():
-    client = AsyncMock()
-    client.search_nodes.return_value = [
-        {"uuid": "test-uuid", "name": "Test Entity", "type": "Concept"}
-    ]
-    client.add_memory.return_value = {"uuid": "memory-uuid", "status": "created"}
-    return client
-
-@pytest.mark.asyncio
-async def test_knowledge_workflow(mock_mcp_client):
-    # Test complete workflow
-    workflow = KnowledgeWorkflow(mock_mcp_client)
-    
-    # Test search
-    results = await workflow.search_knowledge("test query")
-    assert len(results) > 0
-    
-    # Test memory addition
-    memory_result = await workflow.add_knowledge("test content", ["Concept"])
-    assert memory_result["status"] == "created"
-    
-    # Verify calls
-    mock_mcp_client.search_nodes.assert_called()
-    mock_mcp_client.add_memory.assert_called()
-```
-
-### Best Practices Summary
+## Best Practices
 
 1. **Search First**: Always search existing knowledge before adding new information
-2. **Specific Queries**: Use targeted queries with appropriate entity type filters
-3. **Immediate Storage**: Store new information as soon as it's discovered
-4. **Context Awareness**: Use contextual search and maintain conversation context
-5. **Error Handling**: Implement robust error handling and recovery mechanisms
+2. **Use Group IDs**: Organize related information using group_id for better management
+3. **Specific Queries**: Use targeted queries with appropriate filters
+4. **Entity Type Filtering**: Use entity filters ("Preference", "Procedure", "Requirement") for targeted searches
+5. **Immediate Storage**: Store new information as soon as it's discovered
+6. **Source Types**: Use appropriate source types (text, json, message) for different content
+7. **Error Handling**: Check for connection issues and retry if needed
+8. **Container Management**: Remember to rebuild containers after environment variable changes
+9. **Chunk Long Content**: When storing very long requirements or procedures, split them into logical chunks
+10. **Maintain Consistency**: Ensure new information aligns with existing preferences and procedures

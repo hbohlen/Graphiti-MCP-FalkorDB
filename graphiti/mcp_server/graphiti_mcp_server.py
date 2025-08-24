@@ -407,9 +407,12 @@ class GraphitiEmbedderConfig(BaseModel):
                 azure_openai_deployment_name=azure_openai_deployment_name,
             )
         else:
+            # Check for separate embedding API key and base URL
+            embedding_api_key = os.environ.get('EMBEDDING_API_KEY') or os.environ.get('OPENAI_API_KEY')
+            
             return cls(
                 model=model,
-                api_key=os.environ.get('OPENAI_API_KEY'),
+                api_key=embedding_api_key,
             )
 
     def create_client(self) -> EmbedderClient | None:
@@ -446,7 +449,14 @@ class GraphitiEmbedderConfig(BaseModel):
             if not self.api_key:
                 return None
 
-            embedder_config = OpenAIEmbedderConfig(api_key=self.api_key, embedding_model=self.model)
+            # Check for separate embedding base URL
+            embedding_base_url = os.environ.get('EMBEDDING_BASE_URL')
+            
+            embedder_config = OpenAIEmbedderConfig(
+                api_key=self.api_key,
+                embedding_model=self.model,
+                base_url=embedding_base_url  # This will be None if not set, which is fine
+            )
 
             return OpenAIEmbedder(config=embedder_config)
 
